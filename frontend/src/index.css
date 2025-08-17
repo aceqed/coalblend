@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+/* Override Chrome autofill background & text color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  /* Make the browser paint your background color */
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  /* Restore your text color */
+  -webkit-text-fill-color: #1F2937 !important; /* e.g. Tailwind’s gray-800 */
+  /* Prevent the short flash of yellow */
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+
+
+
+/* Responsive fixes */
+@media (max-width: 640px) {
+  .grid {
+    gap: 1rem;
+  }
+}
