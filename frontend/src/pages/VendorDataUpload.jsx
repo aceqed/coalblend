@@ -142,7 +142,7 @@ function VendorDataUpload() {
       console.log("Sending form data:", Object.fromEntries(formDataToSend));
 
       const response = await axios.post(
-        "http://localhost:8000/api/vendor/coal/upload",
+        "http://34.123.69.231:8000/api/vendor/coal/upload",
         formDataToSend,
         {
           headers: {
@@ -341,7 +341,7 @@ function VendorDataUpload() {
                       formData.append("file", file);
 
                       const response = await fetch(
-                        "http://localhost:8000/api/coal/upload",
+                        "http://34.123.69.231:8000/api/coal/upload",
                         {
                           method: "POST",
                           body: formData,

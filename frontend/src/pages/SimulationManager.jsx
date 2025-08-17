@@ -57,7 +57,7 @@ const SimulationManager = () => {
   // Function to fetch simulations
   const fetchSimulations = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/simulations", {
+      const response = await axios.get("http://34.123.69.231:8000/simulations", {
         withCredentials: true,
       });
       const newSimulations = response.data;
@@ -105,7 +105,7 @@ const SimulationManager = () => {
     const fetchBatchSimulations = async (ids) => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/simulations/batch?simulation_ids=${Array.from(ids).join(",")}`,
+          `http://34.123.69.231:8000/simulations/batch?simulation_ids=${Array.from(ids).join(",")}`,
           { withCredentials: true }
         );
 
@@ -255,7 +255,7 @@ const SimulationManager = () => {
 
     try {
       // Fetch detailed simulation data including recommendations and emission data
-      const response = await axios.get(`http://localhost:8000/simulation/${scenario.id}`, {
+      const response = await axios.get(`http://34.123.69.231:8000/simulation/${scenario.id}`, {
         withCredentials: true,
       });
 
@@ -288,7 +288,7 @@ const SimulationManager = () => {
       console.log(`Attempting to stop simulation ${simulationId}`); // Debug log
 
       const response = await axios.post(
-        `http://localhost:8000/simulation/${simulationId}/stop`,
+        `http://34.123.69.231:8000/simulation/${simulationId}/stop`,
         {},
         {
           withCredentials: true,

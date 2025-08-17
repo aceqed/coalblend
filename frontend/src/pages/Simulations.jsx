@@ -13,7 +13,7 @@ const Simulations = () => {
   // Function to fetch simulations
   const fetchSimulations = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/simulations", {
+      const response = await axios.get("http://34.123.69.231:8000/simulations", {
         withCredentials: true,
       });
       setSimulations(response.data);
@@ -39,7 +39,7 @@ const Simulations = () => {
       try {
         const updatedSimulations = await Promise.all(
           Array.from(pollingSimulations).map(async (id) => {
-            const response = await axios.get(`http://localhost:8000/simulation/${id}`, {
+            const response = await axios.get(`http://34.123.69.231:8000/simulation/${id}`, {
               withCredentials: true,
             });
             return response.data;

@@ -66,7 +66,7 @@ app = FastAPI(title="User Authentication API")
 # Add CORS middleware with specific settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Add your frontend URL
+    allow_origins=["http://34.123.69.231:5173", "http://34.123.69.231:3000"],  # Add your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1533,4 +1533,4 @@ def update_vendor_coal_data(
 if __name__ == "__main__":
     import uvicorn
     logger.info("Starting server...")
-    uvicorn.run(app, host="localhost", port=8000, log_level="info")
+    uvicorn.run(app, host="34.123.69.231", port=8000, log_level="info")

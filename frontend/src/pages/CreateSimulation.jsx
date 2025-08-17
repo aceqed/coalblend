@@ -227,7 +227,7 @@ const CreateSimulation = ({ onBack }) => {
       console.log("Sending simulation data:", simulationData); // Debug log
 
       // Step 1: Create the simulation record
-      const createResponse = await axios.post("http://localhost:8000/simulation", simulationData, {
+      const createResponse = await axios.post("http://34.123.69.231:8000/simulation", simulationData, {
         withCredentials: true,
       });
 
@@ -239,7 +239,7 @@ const CreateSimulation = ({ onBack }) => {
 
       // Step 2: Start the optimization process
       const startResponse = await axios.post(
-        `http://localhost:8000/simulation/${createResponse.data.id}/start`,
+        `http://34.123.69.231:8000/simulation/${createResponse.data.id}/start`,
         simulationData,
         {
           withCredentials: true,

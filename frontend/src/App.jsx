@@ -6,7 +6,7 @@ import ProtectedRoute from "./shared/ProtectedRoute.jsx"; // Rename to ProtectRo
 import { userExits, userNotExits } from "./Redux/authSlice"; // update this path as needed
 
 // Configure axios defaults
-axios.defaults.baseURL = "http://localhost:8000"; // Update with your backend URL // here update with local->backend
+axios.defaults.baseURL = "http://34.123.69.231:8000"; // Update with your backend URL // here update with local->backend
 axios.defaults.withCredentials = true; // Important for cookies
 
 import Login from "./pages/Login.jsx";
