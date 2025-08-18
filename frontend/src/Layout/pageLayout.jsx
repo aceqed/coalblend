@@ -73,7 +73,7 @@ function PageLayout({ title, children }) {
           </div>
 
           {/* User dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          {/* <div className="relative" ref={dropdownRef}>
             <button
               className="flex items-center space-x-2 px-3 py-1 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all duration-200"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -106,7 +106,7 @@ function PageLayout({ title, children }) {
                 </button>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
 
