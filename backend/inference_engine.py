@@ -1,3 +1,4 @@
+
 # inference_engine.py
 import os
 import json
@@ -27,7 +28,7 @@ FINAL_FEATURE_ORDER = [
 ]
 
 # Present in final_features but must be DROPPED before scaling
-TARGET_COLUMNS = ["CRI", "CSR", "ASH", "VM","weighted_CRI","weighted_Ash","weighted_CSR"]
+TARGET_COLUMNS = ["CRI", "CSR", "ASH", "VM"]
 
 # Category flags
 CATEGORY_FLAGS = ["HCC", "SHCC", "HFCC", "PCI", "WC"]
@@ -145,55 +146,51 @@ class CoalBlendInferenceEngine:
         print(f"\n=== {title} ===\n{pretty}")
 
     # -------------------------
-    # Weighted averages
+    # Weighted averages  ->  **Weighted sums (no /100)**
     # -------------------------
     def calculate_weighted_averages(self, coal_properties: Dict[str, Any], blend_ratios: List[Dict]) -> Dict[str, float]:
         """
-        Weighted averages for numeric properties and category composition.
-        Expects each coal object to expose attributes named by your DB schema.
+        Compute pure weighted SUMS for numeric properties and category composition.
+        Uses the input weights exactly as provided (e.g., 30 and 70) — NO /100 and NO renormalization.
         """
-        logger.info("Starting weighted average calculations...")
+        logger.info("Starting weighted-sum calculations (no averaging)...")
 
         props = [
             "IM", "Ash", "VM", "FC", "S", "P", "SiO2", "Al2O3", "Fe2O3", "CaO", "MgO",
             "Na2O", "K2O", "TiO2", "Mn3O4", "SO3", "P2O5", "BaO", "SrO", "ZnO",
             "CRI", "CSR", "N", "HGI", "Vitrinite", "Liptinite", "Semi_Fusinite",
             "CSN_FSI", "Initial_Softening_Temp", "MBI", "CBI", "Log_Max_Fluidity",
-            "C", "H", "O", "ss",
+            "C", "H", "O", "ss", "Rank",
             "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19",
             "Inertinite", "Minerals", "MaxFluidity",
         ]
 
         weighted: Dict[str, float] = {f"weighted_{p}": 0.0 for p in props}
         cats = {k: 0.0 for k in CATEGORY_FLAGS}
+        total_weight = 0.0
 
-        # Pass 1: category composition
+        # Pass: accumulate raw weight for categories and numeric sums
         for b in blend_ratios:
             name = b.get("coal_name")
-            pct = float(b.get("percentage", 0.0))
+            try:
+                w_raw = float(b.get("percentage", 0.0))  # e.g., 30, 70
+            except Exception:
+                w_raw = 0.0
+            total_weight += w_raw
+
             coal = coal_properties.get(name)
             if not coal:
                 continue
+
+            # Categories as raw sum of input weights
             category = getattr(coal, "category", None)
             if category is None:
                 category = getattr(coal, "coal_category", "")
-            category = str(category).upper()
-            if category in cats:
-                cats[category] += pct
+            cat = str(category).upper()
+            if cat in cats:
+                cats[cat] += w_raw
 
-        total_pct = sum(cats.values())
-        for k in cats:
-            weighted[k] = (cats[k] / total_pct) * 100.0 if total_pct > 0 else 0.0
-
-        # Pass 2: numeric blending
-        for b in blend_ratios:
-            name = b.get("coal_name")
-            pct = float(b.get("percentage", 0.0))
-            w = pct / 100.0
-            coal = coal_properties.get(name)
-            if not coal:
-                continue
-
+            # Numeric properties as raw weighted sums: Σ (value * weight)
             for p in props:
                 if not hasattr(coal, p):
                     continue
@@ -204,15 +201,22 @@ class CoalBlendInferenceEngine:
                     v = float(val)
                 except Exception:
                     continue
-                weighted[f"weighted_{p}"] += v * w
+                weighted[f"weighted_{p}"] += v * w_raw
 
-        # Also expose raw targets at blend-level (as requested)
-        weighted["CRI"] = weighted.get("weighted_CRI", 0.0)
-        weighted["CSR"] = weighted.get("weighted_CSR", 0.0)
-        weighted["ASH"] = weighted.get("weighted_Ash", 0.0)
-        weighted["VM"]  = weighted.get("weighted_VM", 0.0)
+        # Store category flags as raw sums (e.g., 100 if weights sum to 100)
+        for k, v in cats.items():
+            weighted[k] = float(v)
 
-        logger.info("Weighted average calculations completed.")
+        # Optional convenience keys (raw sums). You can uncomment if you want explicit keys.
+        # weighted["CRI"] = weighted.get("weighted_CRI", 0.0)
+        # weighted["CSR"] = weighted.get("weighted_CSR", 0.0)
+        # weighted["ASH"] = weighted.get("weighted_Ash", 0.0)
+        # weighted["VM"]  = weighted.get("weighted_VM", 0.0)
+
+        # Keep total weight for later (used to compute averages internally for formulas)
+        weighted["_total_weight"] = total_weight
+
+        logger.info("Weighted-sum calculations completed.")
         self._print_section("Weighted Averages", weighted)
         return weighted
 
@@ -220,48 +224,68 @@ class CoalBlendInferenceEngine:
     # Feature engineering
     # -------------------------
     def engineer_features(self, w: Dict[str, float]) -> Dict[str, float]:
-        logger.info("Starting feature engineering...")
+        """
+        Compute BI/MBI/CBI/VRs using the *averaged* values derived from weighted sums.
+        Assumes calculate_weighted_averages stored:
+          - weighted_<prop> = Σ(weight_i * value_i)
+          - _total_weight   = Σ(weight_i)
+        """
+        logger.info("Starting feature engineering (from weighted sums)...")
+
+        # helper: sum → average
+        tw = float(w.get("_total_weight", 0.0)) or 0.0
+
+        def avg(name: str) -> float:
+            val = w.get(f"weighted_{name}", 0.0)
+            return (val) 
 
         # BI
-        num = w.get("weighted_Fe2O3", 0.0) + w.get("weighted_CaO", 0.0) + w.get("weighted_MgO", 0.0) \
-              + w.get("weighted_Na2O", 0.0) + w.get("weighted_K2O", 0.0)
-        den = w.get("weighted_SiO2", 0.0) + w.get("weighted_Al2O3", 0.0) + w.get("weighted_TiO2", 0.0)
+        num = avg("Fe2O3") + avg("CaO") + avg("MgO") + avg("Na2O") + avg("K2O")
+        den = avg("SiO2") + avg("Al2O3") + avg("TiO2")
         BI = (num / den) if den != 0 else 0.0
 
         # MBI
-        w_ash = w.get("weighted_Ash", 0.0)
-        w_vm = w.get("weighted_VM", 0.0)
-        MBI = ((w_ash * 100.0) / (100.0 - w_vm)) * BI if w_vm != 100.0 else 0.0
+        ash = avg("Ash")
+        vm = avg("VM")
+        if ash <= 1.5 and vm <= 1.5:
+            denom = 1.0 - vm
+        else:
+         denom = 100.0 - vm
+        MBI = (ash / denom) * BI if denom != 0 else 0.0
 
-        # VR ratios
-        divisors = {"V7":3, "V8":2.7, "V9":2.5, "V10":2.4, "V11":2.5,
-                    "V12":3, "V13":3.7, "V14":5, "V15":7, "V16":9.6,
-                    "V17":12, "V18":15, "V19":18}
-        VRs = {}
+        # VR ratios (use averaged V7..V19)
+        divisors = {
+            "V7": 3, "V8": 2.7, "V9": 2.5, "V10": 2.4, "V11": 2.5,
+            "V12": 3, "V13": 3.7, "V14": 5, "V15": 7, "V16": 9.6,
+            "V17": 12, "V18": 15, "V19": 18
+        }
+        VRs: Dict[str, float] = {}
         for vcol, d in divisors.items():
-            val = w.get(f"weighted_{vcol}", 0.0)
-            VRs[f"weighted_VR{vcol[1:]}"] = (val / d) if d else 0.0
+            v_mean = avg(vcol)
+            VRs[f"weighted_VR{vcol[1:]}"] = (v_mean / d) if d else 0.0
         sum_vr = sum(VRs.values())
 
-        # CBI (only for coking categories and valid denom)
+        # CBI
         any_hcc = (w.get("HCC", 0.0) + w.get("HFCC", 0.0) + w.get("SHCC", 0.0)) > 0.0
-        inert = w.get("weighted_Inertinite", None)
-        mins  = w.get("weighted_Minerals", None)
+        inert = avg("Inertinite") if "weighted_Inertinite" in w else None
+        mins = avg("Minerals") if "weighted_Minerals" in w else None
         if any_hcc and sum_vr != 0 and inert is not None and mins is not None:
             CBI = (inert + mins) / sum_vr
         else:
             CBI = 0.0
 
         # weighted_Log_Max_Fluidity
-        lmf = w.get("weighted_Log_Max_Fluidity", None)
-        if lmf is None or lmf == 0.0:
-            mf = w.get("weighted_MaxFluidity", 0.0)
+        lmf_sum = w.get("weighted_Log_Max_Fluidity", None)
+        if lmf_sum is not None and lmf_sum != 0.0 and tw:
+            lmf = lmf_sum /tw
+        else:
+            mf = avg("MaxFluidity")
             lmf = np.log(mf) if mf and mf > 0 else 0.0
 
         engineered = {
             "weighted_BI": BI,
-            "weighted_MBI": MBI,
-            "weighted_CBI": CBI,
+            "weighted_MBI": w.get("weighted_MBI"),
+            "weighted_CBI": w.get("weighted_CBI"),
             "weighted_Log_Max_Fluidity": lmf,
         }
         engineered.update(VRs)
@@ -274,6 +298,7 @@ class CoalBlendInferenceEngine:
     # -------------------------
     def calculate_direct_formulas(self, w: Dict[str, float]) -> Dict[str, float]:
         logger.info("Calculating CRI/CSR direct formulas...")
+        # NOTE: Using sums here as you kept elsewhere; if you prefer averaged VM/LMF, switch to avg()
         VM = w.get("weighted_VM", 0.0)
         LMF = w.get("weighted_Log_Max_Fluidity", 0.0)
         CRI_direct = -16.48 + 8.16 * VM - 21.68 * LMF
@@ -312,7 +337,7 @@ class CoalBlendInferenceEngine:
             "weighted_Total Sulphur": g("weighted_S", 0.0),
             "weighted_Phosphorus": g("weighted_P", 0.0),
             "weighted_HGI (ASTM)": g("weighted_HGI", 0.0),
-            "weighted_Rank": 0.0,  # Rank is categorical; use 0.0
+            "weighted_Rank": g("weighted_Rank", 0.0),
             "weighted_Vitrinite %": g("weighted_Vitrinite", 0.0),
             "weighted_Liptinite": g("weighted_Liptinite", 0.0),
             "weighted_Semi-Fusinite": g("weighted_Semi_Fusinite", 0.0),
@@ -332,12 +357,13 @@ class CoalBlendInferenceEngine:
             "weighted_MBI": engineered.get("weighted_MBI", 0.0),
             "weighted_CBI": engineered.get("weighted_CBI", 0.0),
             "weighted_Log_Max_Fluidity": engineered.get("weighted_Log_Max_Fluidity", 0.0),
+            # "weighted_Log_Max_Fluidity": g("weighted_Log_Max_Fluidity", 0.0),
 
             "CRI_direct": direct.get("CRI_direct", 0.0),
             "CSR_from_CRI": direct.get("CSR_from_CRI", 0.0),
             "CSR_direct": direct.get("CSR_direct", 0.0),
         }
-
+        # self._print_section("Final before order Features (build_final_features)", final_features)
         # enforce order & presence
         ordered = {k: final_features.get(k, 0.0) for k in FINAL_FEATURE_ORDER}
         self._print_section("Final Features (build_final_features)", ordered)
@@ -458,20 +484,21 @@ class CoalBlendInferenceEngine:
     # Emissions
     # -------------------------
     def calculate_emissions(self, predictions: Dict[str, float], w: Dict[str, float]) -> Dict[str, float]:
-        fc = predictions.get("FC", w.get("weighted_FC", 0.0))
-        ash = predictions.get("ASH", w.get("weighted_Ash", 0.0))
-        vm = predictions.get("VM", w.get("weighted_VM", 0.0))
+       
+        ash =  w.get("weighted_Ash", 0.0)
+        vm =  w.get("weighted_VM", 0.0)
+        fc =  w.get("weighted_FC", 0.0)
         s = w.get("weighted_S", 0.0)
         n = w.get("weighted_N", 0.0)
-        cri = predictions.get("CRI", w.get("weighted_CRI", 0.0))
-        csr = predictions.get("CSR", w.get("weighted_CSR", 0.0))
+        cri =  w.get("weighted_CRI", 0.0)
+        csr =  w.get("weighted_CSR", 0.0)
 
         em = {}
-        em["CO2_Emissions"] = 0.7 * (fc / 100) * (44.01 / 12.01) * 1000
-        em["CO_Emissions"] = 0.3 * (fc / 100) * (28.01 / 12.01) * 1000
-        em["SO2_Emissions"] = (s / 100) * (64.07 / 32.06) * 1000
-        em["NO_Emissions"] = 0.2 * (n / 100) * (30.01 / 14.01) * 1000
-        em["NO2_Emissions"] = 0.2 * (n / 100) * (46.01 / 14.01) * 1000
+        em["CO2_Emissions"] = 0.7 * (fc / 100) * (44.01 / 12.01) * 10
+        em["CO_Emissions"] = 0.3 * (fc / 100) * (28.01 / 12.01) * 10
+        em["SO2_Emissions"] = (s / 100) * (64.07 / 32.06) * 10
+        em["NO_Emissions"] = 0.2 * (n / 100) * (30.01 / 14.01) * 10
+        em["NO2_Emissions"] = 0.2 * (n / 100) * (46.01 / 14.01) * 10
         pm_index = 0.4 * (ash / 9) + 0.3 * (cri / 28) + 0.3 * (1 - csr / 65)
         em["PM_Index"] = pm_index
         em["PM10_Emissions"] = 0.7 * pm_index
