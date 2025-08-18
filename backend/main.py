@@ -453,20 +453,11 @@ async def predict_blend(
         emissions = inference_results["emissions"]
         
         # Format predictions for response
-        predicted_coal_properties = {
-
-
-            "ASH": enhanced_blend_properties.get("ASH", 0.0),
-
-
-            "VM": enhanced_blend_properties.get("VM", 0.0),
-
-
-            "FC": 100 - enhanced_blend_properties.get("ASH", 0.0) - predicted_targets.get("VM", 0.0),
-
-
-            "CSN": enhanced_blend_properties.get("weighted_CSN/FSI")  # Not predicted in current model
-
+         predicted_coal_properties = {
+            "ASH": enhanced_blend_properties.get("ASH", 0.0)/100,
+            "VM": enhanced_blend_properties.get("VM", 0.0)/100,
+            "FC": enhanced_blend_properties.get("weighted_F.C")/100,
+            "CSN": enhanced_blend_properties.get("weighted_CSN/FSI")/100  # Not predicted in current model
         }
         
         predicted_coke_properties = {
@@ -474,10 +465,10 @@ async def predict_blend(
             "CSR": predicted_targets.get("CSR", 0.0),
             "ASH": predicted_targets.get("ASH", 0.0),
             "VM": predicted_targets.get("VM", 0.0),
-            "N": enhanced_blend_properties.get("weighted_N", 0.0) * 100 * 0.1,
-            "S": enhanced_blend_properties.get("weighted_S", 0.0) * 100 * 0.85,
-            "P": enhanced_blend_properties.get("weighted_Phosphorus", 0.0) * 100 * 0.9,
-            "C": enhanced_blend_properties.get("weighted_C",0.0)
+            "N": (enhanced_blend_properties.get("weighted_N", 0.0)*100) * 0.1,
+            "S": float(enhanced_blend_properties.get("weighted_S", 0.0)/ 100 )* 0.85,
+            "P": float(enhanced_blend_properties.get("weighted_Phosphorus", 0.0) / 100) * 0.9,
+            "C": float(enhanced_blend_properties.get("weighted_C",0.0)/100)
         }
         
         # logger.info("=== Inference Engine Prediction completed successfully ===")
