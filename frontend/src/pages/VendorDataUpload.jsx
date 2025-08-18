@@ -193,7 +193,7 @@ function VendorDataUpload() {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h2 className="text-2xl font-semibold mb-6">Add New Coal Data</h2>
 
-          <div className="flex space-x-4 mb-6">
+          <div className="flex space-x-4 mb-6 text-black">
             <button
               onClick={() => toggleManualEntry()}
               className={`px-4 py-2 rounded-md ${
@@ -240,7 +240,7 @@ function VendorDataUpload() {
                       onChange={handleInputChange}
                       step={prop.step}
                       required={prop.required}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border bg-white text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 ))}

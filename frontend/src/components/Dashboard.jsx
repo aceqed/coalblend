@@ -98,7 +98,7 @@ function Dashboard() {
       {/* Header bar */}
       <div className="h-2 bg-gradient-to-r from-yellow-500 via-purple-500 to-gray-500"></div>
 
-      {/* Top navigation with QED Analytics branding and user */}
+      {/* Top navigation with QED Analyticals branding and user */}
       <div className="bg-white/90 backdrop-blur-sm border-b border-gray-200/50 px-2 py-2">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           {/* Branding */}
@@ -108,7 +108,7 @@ function Dashboard() {
                 QED
               </span>
               <span className="text-1xl font-bold text-gray-800 ml-1">
-                Analytics
+                Analyticals
               </span>
             </div>
           </div>
@@ -158,8 +158,8 @@ function Dashboard() {
       {/* Main Dashboard Content */}
       <div className="flex-grow px-3 py-8 flex justify-center">
         <div className="max-w-5xl w-full">
-          {/* Dashboard Cards Grid (centered) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-5 justify-items-center">
+          {/* Dashboard Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 place-items-stretch">
             {dashboardCards.map((card) => (
               <DashboardCard
                 key={card.id}
@@ -181,7 +181,7 @@ function Dashboard() {
                 QED
               </span>
               <span className="text-lg font-bold text-gray-700 ml-1">
-                Analytics
+                Analyticals
               </span>
             </div>
             <span className="text-gray-500 text-xs">

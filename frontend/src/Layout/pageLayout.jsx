@@ -59,16 +59,16 @@ function PageLayout({ title, children }) {
       {/* Header bar */}
       <div className="h-2 bg-gradient-to-r from-yellow-500 via-purple-500 to-gray-500"></div>
 
-      {/* Top navigation with QED Analytics branding and user */}
+      {/* Top navigation with QED Analyticals branding and user */}
       <div className="bg-white/90 backdrop-blur-sm border-b border-gray-200/50 px-2 py-2">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          {/* QED Analytics Branding */}
+          {/* QED Analyticals Branding */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center">
               <span className="text-1xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
                 QED
               </span>
-              <span className="text-1xl font-bold text-gray-800 ml-1">Analytics</span>
+              <span className="text-1xl font-bold text-gray-800 ml-1">Analyticals</span>
             </div>
           </div>
 

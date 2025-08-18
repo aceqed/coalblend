@@ -206,7 +206,7 @@ const Signup = () => {
       <div className="mt-10 text-center">
         <div className="flex justify-center items-center space-x-2 text-lg">
           <span className="font-bold text-yellow-500 text-2xl">QED</span>
-          <span className="font-bold text-gray-700 text-2xl">Analytics</span>
+          <span className="font-bold text-gray-700 text-2xl">Analyticals</span>
         </div>
       </div>
     </div>
