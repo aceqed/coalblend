@@ -60,7 +60,7 @@ const App = () => {
             <Route path="/input-screen" element={<InputScreen />} />
             <Route path="/vendor-data-upload" element={<VendorDataUpload />} />
             <Route path="/prediction" element={<Prediction />} />
-            <Route path="/Help" element={<Prediction />} />
+            <Route path="/Help" element={<Help />} />
           </Route>
 
           {/* Public routes for unauthenticated users */}
