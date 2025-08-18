@@ -49,19 +49,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-cyan-50 to-cyan-200 flex flex-col justify-center py-6 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center mb-4">
-          <div className="bg-white p-3 rounded-xl shadow-md">
-            {/* <img
-              className="h-12 w-auto"
-              src={vedantaLogo}
-              alt="Vedanta Logo"
-              onError={(e) => {
-                console.error("Error loading Vedanta logo");
-                e.target.src = "https://via.placeholder.com/150x50?text=Vedanta";
-              }}
-            /> */}
-          </div>
-        </div>
+        
         <h2 className="text-center text-2xl font-bold text-gray-800 mb-1">Welcome Back</h2>
       </div>
 
