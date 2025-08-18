@@ -51,7 +51,7 @@ const Login = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-4">
           <div className="bg-white p-3 rounded-xl shadow-md">
-            <img
+            {/* <img
               className="h-12 w-auto"
               src={vedantaLogo}
               alt="Vedanta Logo"
@@ -59,7 +59,7 @@ const Login = () => {
                 console.error("Error loading Vedanta logo");
                 e.target.src = "https://via.placeholder.com/150x50?text=Vedanta";
               }}
-            />
+            /> */}
           </div>
         </div>
         <h2 className="text-center text-2xl font-bold text-gray-800 mb-1">Welcome Back</h2>
@@ -226,7 +226,7 @@ const Login = () => {
       <div className="mt-6 text-center">
         <div className="flex justify-center items-center space-x-2">
           <span className="font-bold text-yellow-500 text-xl drop-shadow-sm">QED</span>
-          <span className="font-bold text-gray-700 text-xl drop-shadow-sm">Analytics</span>
+          <span className="font-bold text-gray-700 text-xl drop-shadow-sm">Analyticals</span>
         </div>
         <p className="mt-1 text-gray-500 text-xs">Coal Blend Optimization Platform</p>
       </div>

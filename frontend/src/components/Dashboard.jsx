@@ -40,30 +40,30 @@ function Dashboard() {
 
   // Dashboard card data
   const dashboardCards = [
-    {
-      id: "kpi-dashboard",
-      title: "KPI Dashboard",
-      icon: <Grid className="h-8 w-8" />,
-      path: "/kpi-dashboard",
-    },
+    // {
+    //   id: "kpi-dashboard",
+    //   title: "KPI Dashboard",
+    //   icon: <Grid className="h-8 w-8" />,
+    //   path: "/kpi-dashboard",
+    // },
     {
       id: "blend-recommendation",
       title: "Blend Recommendation",
       icon: <Network className="h-8 w-8" />,
       path: "/blend-recommendation",
     },
-    {
-      id: "simulation-manager",
-      title: "Simulation Manager",
-      icon: <Play className="h-8 w-8" strokeWidth={1.5} />,
-      path: "/simulation-manager",
-    },
-    {
-      id: "input-screen",
-      title: "Input Screen",
-      icon: <Edit className="h-8 w-8" />,
-      path: "/input-screen",
-    },
+    // {
+    //   id: "simulation-manager",
+    //   title: "Simulation Manager",
+    //   icon: <Play className="h-8 w-8" strokeWidth={1.5} />,
+    //   path: "/simulation-manager",
+    // },
+    // {
+    //   id: "input-screen",
+    //   title: "Input Screen",
+    //   icon: <Edit className="h-8 w-8" />,
+    //   path: "/input-screen",
+    // },
     {
       id: "vendor-data-upload",
       title: "Vendor Data Upload",
