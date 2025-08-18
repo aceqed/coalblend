@@ -1,8 +1,14 @@
 import React from 'react'
+import PageLayout from '../Layout/pageLayout'
 
 const Help = () => {
   return (
-    <div>Help</div>
+      <PageLayout title="Help Page">
+        <div>
+            HeLP
+        </div>
+
+      </PageLayout>
   )
 }
 
