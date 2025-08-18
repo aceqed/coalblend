@@ -115,7 +115,7 @@ function Dashboard() {
 
           {/* User dropdown */}
           <div className="relative">
-            <button
+            {/* <button
               className="flex items-center space-x-2 px-3 py-1 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all duration-200"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
@@ -126,7 +126,7 @@ function Dashboard() {
                 {user.name}
               </span>
               <ChevronDown className="h-4 w-4 text-gray-500" />
-            </button>
+            </button> */}
 
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-100 overflow-hidden">
