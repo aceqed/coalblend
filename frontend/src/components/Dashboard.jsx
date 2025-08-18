@@ -46,18 +46,18 @@ function Dashboard() {
     //   icon: <Grid className="h-8 w-8" />,
     //   path: "/kpi-dashboard",
     // },
-    {
-      id: "blend-recommendation",
-      title: "Blend Recommendation",
-      icon: <Network className="h-8 w-8" />,
-      path: "/blend-recommendation",
-    },
     // {
-    //   id: "simulation-manager",
-    //   title: "Simulation Manager",
-    //   icon: <Play className="h-8 w-8" strokeWidth={1.5} />,
-    //   path: "/simulation-manager",
+    //   id: "blend-recommendation",
+    //   title: "Blend Recommendation",
+    //   icon: <Network className="h-8 w-8" />,
+    //   path: "/blend-recommendation",
     // },
+    {
+      id: "simulation-manager",
+      title: "Simulation Manager",
+      icon: <Play className="h-8 w-8" strokeWidth={1.5} />,
+      path: "/simulation-manager",
+    },
     // {
     //   id: "input-screen",
     //   title: "Input Screen",
