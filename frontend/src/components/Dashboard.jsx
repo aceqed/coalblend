@@ -76,6 +76,12 @@ function Dashboard() {
       icon: <Play className="h-8 w-8" strokeWidth={1.5} />,
       path: "/prediction",
     },
+     {
+      id: "Help",
+      title: "Help",
+      icon: <Play className="h-8 w-8" strokeWidth={1.5} />,
+      path: "/Help",
+    },
   ];
 
   return (

@@ -20,6 +20,7 @@ const SimulationManager = lazy(() => import("./pages/SimulationManager.jsx"));
 const InputScreen = lazy(() => import("./pages/InputScreen.jsx"));
 const VendorDataUpload = lazy(() => import("./pages/VendorDataUpload.jsx"));
 const Prediction = lazy(() => import("./pages/Prediction.jsx"));
+const Help = lazy(() => import("./pages/Help.jsx"));
 
 const App = () => {
   const dispatch = useDispatch();
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/input-screen" element={<InputScreen />} />
             <Route path="/vendor-data-upload" element={<VendorDataUpload />} />
             <Route path="/prediction" element={<Prediction />} />
+            <Route path="/Help" element={<Prediction />} />
           </Route>
 
           {/* Public routes for unauthenticated users */}
