@@ -223,76 +223,163 @@ class CoalBlendInferenceEngine:
     # -------------------------
     # Feature engineering
     # -------------------------
-    def engineer_features(self, w: Dict[str, float]) -> Dict[str, float]:
-        """
-        Compute BI/MBI/CBI/VRs using the *averaged* values derived from weighted sums.
-        Assumes calculate_weighted_averages stored:
-          - weighted_<prop> = Σ(weight_i * value_i)
-          - _total_weight   = Σ(weight_i)
-        """
-        logger.info("Starting feature engineering (from weighted sums)...")
+    # def engineer_features(self, w: Dict[str, float]) -> Dict[str, float]:
+    #     """
+    #     Compute BI/MBI/CBI/VRs using the *averaged* values derived from weighted sums.
+    #     Assumes calculate_weighted_averages stored:
+    #       - weighted_<prop> = Σ(weight_i * value_i)
+    #       - _total_weight   = Σ(weight_i)
+    #     """
+    #     logger.info("Starting feature engineering (from weighted sums)...")
 
-        # helper: sum → average
-        tw = float(w.get("_total_weight", 0.0)) or 0.0
+    #     # helper: sum → average
+    #     tw = float(w.get("_total_weight", 0.0)) or 0.0
 
-        def avg(name: str) -> float:
-            val = w.get(f"weighted_{name}", 0.0)
-            return (val) 
+    #     def avg(name: str) -> float:
+    #         val = w.get(f"weighted_{name}", 0.0)
+    #         return (val) 
 
-        # BI
-        num = avg("Fe2O3") + avg("CaO") + avg("MgO") + avg("Na2O") + avg("K2O")
-        den = avg("SiO2") + avg("Al2O3") + avg("TiO2")
-        BI = (num / den) if den != 0 else 0.0
+    #     # BI
+    #     num = avg("Fe2O3") + avg("CaO") + avg("MgO") + avg("Na2O") + avg("K2O")
+    #     den = avg("SiO2") + avg("Al2O3") + avg("TiO2")
+    #     BI = (num / den) if den != 0 else 0.0
 
-        # MBI
-        ash = avg("Ash")
-        vm = avg("VM")
-        if ash <= 1.5 and vm <= 1.5:
-            denom = 1.0 - vm
-        else:
-         denom = 100.0 - vm
-        MBI = (ash / denom) * BI if denom != 0 else 0.0
+    #     # MBI
+    #     ash = avg("Ash")
+    #     vm = avg("VM")
+    #     if ash <= 1.5 and vm <= 1.5:
+    #         denom = 1.0 - vm
+    #     else:
+    #      denom = 100.0 - vm
+    #     MBI = (ash / denom) * BI if denom != 0 else 0.0
 
-        # VR ratios (use averaged V7..V19)
-        divisors = {
-            "V7": 3, "V8": 2.7, "V9": 2.5, "V10": 2.4, "V11": 2.5,
-            "V12": 3, "V13": 3.7, "V14": 5, "V15": 7, "V16": 9.6,
-            "V17": 12, "V18": 15, "V19": 18
+    #     # VR ratios (use averaged V7..V19)
+    #     divisors = {
+    #         "V7": 3, "V8": 2.7, "V9": 2.5, "V10": 2.4, "V11": 2.5,
+    #         "V12": 3, "V13": 3.7, "V14": 5, "V15": 7, "V16": 9.6,
+    #         "V17": 12, "V18": 15, "V19": 18
+    #     }
+    #     VRs: Dict[str, float] = {}
+    #     for vcol, d in divisors.items():
+    #         v_mean = avg(vcol)
+    #         VRs[f"weighted_VR{vcol[1:]}"] = (v_mean / d) if d else 0.0
+    #     sum_vr = sum(VRs.values())
+
+    #     # CBI
+    #     any_hcc = (w.get("HCC", 0.0) + w.get("HFCC", 0.0) + w.get("SHCC", 0.0)) > 0.0
+    #     inert = avg("Inertinite") if "weighted_Inertinite" in w else None
+    #     mins = avg("Minerals") if "weighted_Minerals" in w else None
+    #     if any_hcc and sum_vr != 0 and inert is not None and mins is not None:
+    #         CBI = (inert + mins) / sum_vr
+    #     else:
+    #         CBI = 0.0
+
+    #     # weighted_Log_Max_Fluidity
+    #     lmf_sum = w.get("weighted_Log_Max_Fluidity", None)
+    #     if lmf_sum is not None and lmf_sum != 0.0 and tw:
+    #         lmf = lmf_sum /tw
+    #     else:
+    #         mf = avg("MaxFluidity")
+    #         lmf = np.log(mf) if mf and mf > 0 else 0.0
+
+    #     engineered = {
+    #         "weighted_BI": BI,
+    #         "weighted_MBI": w.get("weighted_MBI"),
+    #         "weighted_CBI": w.get("weighted_CBI"),
+    #         "weighted_Log_Max_Fluidity": lmf,
+    #     }
+    #     engineered.update(VRs)
+    #     self._print_section("engineering feature",engineered);
+    #     logger.info("Feature engineering completed.")
+    #     return engineered
+    def engineer_features(self, w: Dict[str, float],coal_properties: Dict[str, Any],blend_ratios: List[Dict]  ) -> Dict[str, float]:      
+      logger.info("Starting feature engineering (from weighted sums + unweighted BI)...")
+
+    # --- helpers ---
+      tw = float(w.get("_total_weight", 0.0)) or 0.0
+
+      def avg(prop: str) -> float:
+        """Average value from the weighted sum dict (returns 0 if tw==0)."""
+        return (w.get(f"weighted_{prop}", 0.0) / tw) if tw else 0.0
+
+      def sum_unweighted(prop: str) -> float:
+        """Plain sum of a property over included coals (ignores percentages)."""
+        total = 0.0
+        for b in blend_ratios:
+            name = b.get("coal_name")
+            coal = coal_properties.get(name)
+            if not coal:
+                continue
+            try:
+                v = getattr(coal, prop, 0.0)
+                total += float(v) if v is not None else 0.0
+            except Exception:
+                pass
+        return total
+
+    # --- BI (UNWEIGHTED SUM over oxides) ---
+      num = (
+        sum_unweighted("Fe2O3")
+        + sum_unweighted("CaO")
+        + sum_unweighted("MgO")
+        + sum_unweighted("Na2O")
+        + sum_unweighted("K2O")
+      )
+      den = (
+        sum_unweighted("SiO2")
+        + sum_unweighted("Al2O3")
+        + sum_unweighted("TiO2")
+      )
+      BI = (num / den) if den != 0 else 0.0
+
+    # --- MBI (based on AVERAGE Ash & VM) ---
+      ash = avg("Ash")  # e.g., 9.75
+      vm  = avg("VM")   # e.g., 22.57
+    # Use your Excel-style formula (Ash and VM in %):
+      denom = (100.0 - vm) if vm != 100.0 else 0.0
+      MBI = ((ash * 100.0) / denom) * BI if denom != 0 else 0.0
+
+    # --- VR ratios (use AVERAGED V7..V19) ---
+      divisors = {
+        "V7": 3, "V8": 2.7, "V9": 2.5, "V10": 2.4, "V11": 2.5,
+        "V12": 3, "V13": 3.7, "V14": 5, "V15": 7, "V16": 9.6,
+        "V17": 12, "V18": 15, "V19": 18
+      }
+      VRs: Dict[str, float] = {}
+      for vcol, d in divisors.items():
+         v_mean = avg(vcol)
+         VRs[f"weighted_VR{vcol[1:]}"] = (v_mean / d) if d else 0.0
+         sum_vr = sum(VRs.values())
+
+    # --- CBI (AVERAGE inertinite/minerals, only if coking categories present) ---
+      any_hcc = (w.get("HCC", 0.0) + w.get("HFCC", 0.0) + w.get("SHCC", 0.0)) > 0.0
+      inert = avg("Inertinite") if "weighted_Inertinite" in w else None
+      mins  = avg("Minerals")    if "weighted_Minerals" in w else None
+      if any_hcc and sum_vr != 0 and inert is not None and mins is not None:
+        CBI = (inert + mins) / sum_vr
+      else:
+        CBI = 0.0
+
+    # --- Log(Max Fluidity) (prefer average MaxFluidity) ---
+    # If you have a weighted sum of log already, average it; else compute log of avg MaxFluidity.
+      lmf_sum = w.get("weighted_Log_Max_Fluidity", None)
+      if lmf_sum is not None and lmf_sum != 0.0 and tw:
+              lmf = lmf_sum / tw
+      else:
+         mf = avg("MaxFluidity")
+         lmf = np.log(mf) if mf and mf > 0 else 0.0
+
+      engineered = {
+         "weighted_BI": BI*100,                   # <-- unweighted BI as requested
+        "weighted_MBI": MBI*100,                 # from averages
+        "weighted_CBI": CBI*100,                 # from averages + VRs
+        "weighted_Log_Max_Fluidity": lmf*100,    # average log fluidity
+        **VRs,
         }
-        VRs: Dict[str, float] = {}
-        for vcol, d in divisors.items():
-            v_mean = avg(vcol)
-            VRs[f"weighted_VR{vcol[1:]}"] = (v_mean / d) if d else 0.0
-        sum_vr = sum(VRs.values())
 
-        # CBI
-        any_hcc = (w.get("HCC", 0.0) + w.get("HFCC", 0.0) + w.get("SHCC", 0.0)) > 0.0
-        inert = avg("Inertinite") if "weighted_Inertinite" in w else None
-        mins = avg("Minerals") if "weighted_Minerals" in w else None
-        if any_hcc and sum_vr != 0 and inert is not None and mins is not None:
-            CBI = (inert + mins) / sum_vr
-        else:
-            CBI = 0.0
-
-        # weighted_Log_Max_Fluidity
-        lmf_sum = w.get("weighted_Log_Max_Fluidity", None)
-        if lmf_sum is not None and lmf_sum != 0.0 and tw:
-            lmf = lmf_sum /tw
-        else:
-            mf = avg("MaxFluidity")
-            lmf = np.log(mf) if mf and mf > 0 else 0.0
-
-        engineered = {
-            "weighted_BI": BI,
-            "weighted_MBI": w.get("weighted_MBI"),
-            "weighted_CBI": w.get("weighted_CBI"),
-            "weighted_Log_Max_Fluidity": lmf,
-        }
-        engineered.update(VRs)
-
-        logger.info("Feature engineering completed.")
-        return engineered
-
+      logger.info("Feature engineering completed.")
+      return engineered
+  
     # -------------------------
     # Direct formula proxies
     # -------------------------
@@ -301,10 +388,15 @@ class CoalBlendInferenceEngine:
         # NOTE: Using sums here as you kept elsewhere; if you prefer averaged VM/LMF, switch to avg()
         VM = w.get("weighted_VM", 0.0)
         LMF = w.get("weighted_Log_Max_Fluidity", 0.0)
-        CRI_direct = -16.48 + 8.16 * VM - 21.68 * LMF
-        CSR_from_CRI = 94.19 - 1.15 * CRI_direct
+        # self._print_section("direct",vm);
+        
+        CRI_direct = -16.48 + (8.16 * VM) - (21.68 * LMF)
+        CSR_from_CRI = 94.19 - (1.15 * CRI_direct)
         CSR_direct = 95.76 - 2.50 * VM + 11.00 * LMF
         return {"CRI_direct": CRI_direct, "CSR_from_CRI": CSR_from_CRI, "CSR_direct": CSR_direct}
+    
+       
+
 
     # -------------------------
     # Build final features (exact keys)
@@ -485,13 +577,13 @@ class CoalBlendInferenceEngine:
     # -------------------------
     def calculate_emissions(self, predictions: Dict[str, float], w: Dict[str, float]) -> Dict[str, float]:
        
-        ash =  w.get("weighted_Ash", 0.0)
-        vm =  w.get("weighted_VM", 0.0)
-        fc =  w.get("weighted_FC", 0.0)
-        s = w.get("weighted_S", 0.0)
-        n = w.get("weighted_N", 0.0)
-        cri =  w.get("weighted_CRI", 0.0)
-        csr =  w.get("weighted_CSR", 0.0)
+        ash = float(w.get("weighted_Ash", 0.0)/100)
+        vm =  float(w.get("weighted_VM", 0.0)/100)
+        fc =   float(w.get("weighted_FC", 0.0)/100)
+        s =  float(w.get("weighted_S", 0.0)/100)
+        n =  float(w.get("weighted_N", 0.0)/100)
+        cri =  float(w.get("weighted_CRI", 0.0)/100)
+        csr =  float(w.get("weighted_CSR", 0.0)/100)
 
         em = {}
         em["CO2_Emissions"] = 0.7 * (fc / 100) * (44.01 / 12.01) * 10
@@ -524,9 +616,11 @@ class CoalBlendInferenceEngine:
         """
         # 1) Weighted
         w = self.calculate_weighted_averages(coal_properties, blend_ratios)
+        
+        # /direct = self.calculate_direct_formulas(w)
 
         # 2) Engineer
-        engineered = self.engineer_features(w)
+        engineered = self.engineer_features(w, coal_properties, blend_ratios)
         w = {**w, **engineered}
 
         # 3) Direct formulas
