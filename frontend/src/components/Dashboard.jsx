@@ -140,7 +140,7 @@ function Dashboard() {
                     </span>
                   </div>
                 </div>
-                <button
+                {/* <button
                   onClick={handleLogout}
                   className="w-full px-4 py-3 flex items-center space-x-2 hover:bg-red-50 transition-colors text-gray-800"
                 >
@@ -148,7 +148,7 @@ function Dashboard() {
                     <LogOut className="w-4 h-4 text-white" />
                   </div>
                   <span className="font-medium text-sm">Logout</span>
-                </button>
+                </button> */}
               </div>
             )}
           </div>

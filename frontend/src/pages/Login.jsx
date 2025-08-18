@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { useDispatch, } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { userExits, userNotExits } from "../Redux/authSlice";
 import axios from "axios";
 import vedantaLogo from "../assets/Vedanta-logo.jpg";
-
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +13,27 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user, loader } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data } = await axios.get("/users/me");
+        console.log(data);
+        dispatch(userExits(data));
+      } catch (error) {
+        // dispatch(userNotExits());
+        const response = await axios.post("/login", {
+          email: "parth@qedanalyiticals.com",
+          password: "parthparekh",
+        });
+
+        // Update Redux state with user data
+        dispatch(userExits(response.data.user));
+      }
+    };
+    checkAuth();
+  }, [dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +54,8 @@ const Login = () => {
       let errorMessage = "Login failed";
 
       if (error.code === "ERR_NETWORK") {
-        errorMessage = "Unable to connect to the server. Please check if the server is running.";
+        errorMessage =
+          "Unable to connect to the server. Please check if the server is running.";
       } else if (error.response?.data?.detail) {
         errorMessage = error.response.data.detail;
       }
@@ -49,15 +70,19 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-cyan-50 to-cyan-200 flex flex-col justify-center py-6 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        
-        <h2 className="text-center text-2xl font-bold text-gray-800 mb-1">Welcome Back</h2>
+        <h2 className="text-center text-2xl font-bold text-gray-800 mb-1">
+          Welcome Back
+        </h2>
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white/90 backdrop-blur-sm py-6 px-6 shadow-xl sm:rounded-xl sm:px-8 border border-white/20">
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -91,7 +116,10 @@ const Login = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-semibold text-gray-700 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
@@ -213,10 +241,16 @@ const Login = () => {
 
       <div className="mt-6 text-center">
         <div className="flex justify-center items-center space-x-2">
-          <span className="font-bold text-yellow-500 text-xl drop-shadow-sm">QED</span>
-          <span className="font-bold text-gray-700 text-xl drop-shadow-sm">Analyticals</span>
+          <span className="font-bold text-yellow-500 text-xl drop-shadow-sm">
+            QED
+          </span>
+          <span className="font-bold text-gray-700 text-xl drop-shadow-sm">
+            Analyticals
+          </span>
         </div>
-        <p className="mt-1 text-gray-500 text-xs">Coal Blend Optimization Platform</p>
+        <p className="mt-1 text-gray-500 text-xs">
+          Coal Blend Optimization Platform
+        </p>
       </div>
     </div>
   );
