@@ -113,7 +113,8 @@ const RecommendationsView = ({ simulation, onBack }) => {
     }); // Debug log for emission data
     console.log("Full rec object keys:", Object.keys(rec)); // Show all available keys
     // Create a unique key for each blend combination based on predicted values
-    const key = `${rec.predicted_ash_final}-${rec.predicted_vm_final}-${rec.predicted_csr}-${rec.predicted_cri}`;
+    const key=String(rec.id);
+    // const key = `${rec.predicted_ash_final}-${rec.predicted_vm_final}-${rec.predicted_csr}-${rec.predicted_cri}`;
     console.log("Generated key for blend:", key); // Debug log for the generated key
 
     if (!acc[key]) {
