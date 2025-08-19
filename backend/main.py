@@ -453,7 +453,7 @@ async def predict_blend(
         emissions = inference_results["emissions"]
         
         # Format predictions for response
-         predicted_coal_properties = {
+        predicted_coal_properties = {
             "ASH": enhanced_blend_properties.get("ASH", 0.0)/100,
             "VM": enhanced_blend_properties.get("VM", 0.0)/100,
             "FC": enhanced_blend_properties.get("weighted_F.C")/100,
